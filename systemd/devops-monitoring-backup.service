@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily DevOps Monitoring log backup
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+Environment="BACKUP_BUCKET=devops-monitoring-logs-151024280292"
+Environment="AWS_DEFAULT_REGION=us-east-1"
+ExecStart=/home/ubuntu/devops-monitoring/backup-logs.sh

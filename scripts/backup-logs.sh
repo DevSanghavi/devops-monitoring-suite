@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-BUCKET="${1:?Usage: backup-logs.sh BUCKET_NAME}"
+BUCKET="${1:-${BACKUP_BUCKET:-}}"
+[[ -n "$BUCKET" ]] || { echo "FAIL: backup bucket not provided"; exit 1; }
 AWS_BIN="/usr/local/bin/aws"
 STAMP="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
 WORK_DIR="$(mktemp -d)"
@@ -19,5 +20,5 @@ for CONTAINER in "${CONTAINERS[@]}"; do
   fi
 done
 [[ "$COUNT" -gt 0 ]] || { echo "FAIL: no logs collected"; exit 1; }
-"$AWS_BIN" s3 cp "$WORK_DIR/" "s3://${BUCKET}/${STAMP}/" --recursive --sse AES256
+"$AWS_BIN" s3 cp "$WORK_DIR/" "s3://${BUCKET}/${STAMP}/" --recursive --sse AES256 --region "${AWS_DEFAULT_REGION:-us-east-1}"
 echo "Backup uploaded to s3://${BUCKET}/${STAMP}/ ($COUNT archives)"
