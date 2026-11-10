@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DevOps Monitoring Suite</title>
+<style>
+:root{--bg:#0b1220;--panel:#121c30;--line:#22304d;--text:#e6edf7;--muted:#9fb0c9;--ok:#2ecc71;--bad:#ff5d5d;--accent:#4da3ff;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.55;}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px;}
+main.wrap{padding-bottom:40px;}
+header{border-bottom:1px solid var(--line);background:linear-gradient(135deg,#12264a,#0b1220);padding:30px 0 24px;}
+h1{margin:0 0 6px;font-size:1.8rem;letter-spacing:.3px;}
+h2{margin:34px 0 4px;font-size:1.2rem;color:var(--accent);}
+.sub{margin:0 0 4px;color:var(--muted);}
+.hint{margin:0 0 14px;color:var(--muted);font-size:.92rem;}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.card h3{margin:0 0 8px;font-size:1rem;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.card p{margin:10px 0 0;color:var(--muted);font-size:.92rem;}
+.badge{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:999px;background:#2a3857;color:var(--muted);white-space:nowrap;}
+.badge.ok{background:rgba(46,204,113,.16);color:var(--ok);}
+.badge.bad{background:rgba(255,93,93,.16);color:var(--bad);}
+.row{display:flex;justify-content:space-between;gap:10px;font-size:.92rem;padding:4px 0;border-bottom:1px dashed var(--line);}
+.row span:first-child{color:var(--muted);}
+.tablewrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);font-size:.92rem;}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+th{color:var(--muted);font-weight:600;font-size:.78rem;text-transform:uppercase;letter-spacing:.6px;}
+code{background:#0b1426;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:.85rem;}
+.legend span{display:inline-block;margin-right:18px;color:var(--muted);font-size:.9rem;}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem;}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>DevOps Monitoring Suite</h1>
+<p class="sub">Operations view for the Project 1 EC2 server, which runs the staging and production APIs behind Nginx.</p>
+<p class="sub">Last refresh: <strong id="last">-</strong> (updates every 30 seconds)</p>
+</div></header>
+<main class="wrap">
+
+<h2>1. Live service checks</h2>
+<p class="hint">These checks run in your browser when the page loads and again every 30 seconds.</p>
+<div class="grid">
+<div class="card"><h3>Production API <span id="prod-badge" class="badge">CHECKING</span></h3>
+<div class="row"><span>Environment</span><span id="prod-env">-</span></div>
+<div class="row"><span>Database</span><span id="prod-db">-</span></div>
+<div class="row"><span>Release (image id)</span><span id="prod-rel">-</span></div>
+<div class="row"><span>Checked at</span><span id="prod-time">-</span></div>
+<p>Calls <code>/health</code> on this server through Nginx on port 80. HEALTHY means the API answered and reported status ok. The release id is the first 12 characters of the fingerprint of the container image that is running.</p></div>
+<div class="card"><h3>Staging API <span id="stg-badge" class="badge">CHECKING</span></h3>
+<div class="row"><span>Port</span><span>8080</span></div>
+<div class="row"><span>Purpose</span><span>Tests each release first</span></div>
+<div class="row"><span>Checked at</span><span id="stg-time">-</span></div>
+<p>Browsers cannot read answers from a different port, so this only proves that port 8080 responds. The deployment pipeline checks the full staging health report before a release is promoted.</p></div>
+<div class="card"><h3>Nginx web server <span class="badge ok">SERVING</span></h3>
+<div class="row"><span>Role</span><span>Front door on port 80</span></div>
+<div class="row"><span>This page</span><span>Served by Nginx</span></div>
+<p>If you can read this page, Nginx is up. It forwards API traffic to production and serves this dashboard at <code>/dashboard</code>.</p></div>
+</div>
+
+<h2>2. Alarm rules (Amazon CloudWatch)</h2>
+<p class="hint">Alarms watch the server around the clock. When one triggers, CloudWatch sends an email through Amazon SNS. Live graphs are in the CloudWatch console; this page shows the rules.</p>
+<div class="tablewrap"><table>
+<tr><th>Alarm</th><th>What it watches</th><th>Triggers when</th><th>Why it matters</th></tr>
+<tr><td>CPU usage</td><td>How busy the processor is. Built-in EC2 metric.</td><td>Average is above 70 percent for two checks in a row (5 minutes each)</td><td>A busy CPU makes the APIs slow or time out.</td></tr>
+<tr><td>Memory usage</td><td>Share of RAM in use. Collected by the CloudWatch Agent every 60 seconds.</td><td>Average is above 80 percent for two checks in a row</td><td>When RAM runs out, containers can be killed and the server can freeze.</td></tr>
+<tr><td>Disk usage</td><td>Share of the root disk that is full. Collected by the CloudWatch Agent.</td><td>Average is above 85 percent for two checks in a row</td><td>A full disk stops Docker, logging, and backups from working.</td></tr>
+</table></div>
+
+<h2>3. Automation running on the server</h2>
+<p class="hint">Four background jobs keep the server observable and recoverable without manual work.</p>
+<div class="grid">
+<div class="card"><h3>Metrics collection <span class="badge">EVERY 60 SEC</span></h3>
+<p>The CloudWatch Agent reads memory and disk usage and publishes them to CloudWatch in the DevOpsMonitoring namespace. These are the numbers the memory and disk alarms use.</p></div>
+<div class="card"><h3>Daily log backup <span class="badge">DAILY 23:45 UTC</span></h3>
+<p>A systemd timer starts a backup script. It compresses the last 24 hours of container logs and uploads them to a private, encrypted, versioned S3 bucket in a time-stamped folder. The server can upload backups but cannot delete them.</p></div>
+<div class="card"><h3>Log rotation <span class="badge">DAILY</span></h3>
+<p>logrotate keeps 7 compressed copies of each container log (rotating early at 50 MB) and of the backup log (10 MB). This stops logs from filling the disk.</p></div>
+<div class="card"><h3>Central logs <span class="badge">7 DAYS</span></h3>
+<p>The staging and production API containers stream their logs to CloudWatch Logs, which keeps them for 7 days. Problems can be investigated without logging in to the server.</p></div>
+</div>
+
+<h2>4. How to read this page</h2>
+<p class="legend"><span><i class="dot" style="background:#2ecc71"></i>Green: the check passed</span><span><i class="dot" style="background:#ff5d5d"></i>Red: no answer or an unhealthy answer</span><span><i class="dot" style="background:#2a3857"></i>Grey: check in progress</span></p>
+
+<footer>Day 143 of the 180-day cloud engineering roadmap, Project 3: DevOps Monitoring Suite. This public page is static and shows no account IDs, addresses, or secrets.</footer>
+</main>
+<script>
+function el(id){return document.getElementById(id);}
+function badge(id,cls,text){var b=el(id);b.className="badge "+cls;b.textContent=text;}
+function now(){return new Date().toLocaleTimeString();}
+function timed(url,opts){var c=new AbortController();var t=setTimeout(function(){c.abort();},5000);opts.signal=c.signal;opts.cache="no-store";return fetch(url,opts).then(function(r){clearTimeout(t);return r;},function(e){clearTimeout(t);throw e;});}
+function checkProd(){
+timed("/health",{}).then(function(r){if(!r.ok){throw new Error("bad status");}return r.json();}).then(function(d){
+var ok=d.status==="ok";
+badge("prod-badge",ok?"ok":"bad",ok?"HEALTHY":"DEGRADED");
+el("prod-env").textContent=d.environment||"unknown";
+el("prod-db").textContent=d.database||"n/a";
+var rel="n/a";
+if(d.image_digest){var s=String(d.image_digest);var i=s.indexOf("sha256:");rel=i>=0?s.substr(i+7,12):s.substr(0,12);}
+el("prod-rel").textContent=rel;
+}).catch(function(){badge("prod-badge","bad","DOWN");el("prod-env").textContent="-";el("prod-db").textContent="-";el("prod-rel").textContent="-";});
+el("prod-time").textContent=now();}
+function checkStaging(){
+var url=location.protocol+"//"+location.hostname+":8080/health";
+timed(url,{mode:"no-cors"}).then(function(){badge("stg-badge","ok","REACHABLE");}).catch(function(){badge("stg-badge","bad","UNREACHABLE");});
+el("stg-time").textContent=now();}
+function run(){checkProd();checkStaging();el("last").textContent=now();}
+run();
+setInterval(run,30000);
+</script>
+</body>
+</html>
