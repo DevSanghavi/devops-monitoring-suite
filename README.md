@@ -71,3 +71,13 @@ devops-monitoring-suite/
 - Discover all EC2 values with AWS CLI; never hardcode them.
 - Create new Project 3 resources with the `devops-monitoring-` prefix and least-privilege permissions.
 - Keep backups in S3; never delete backup objects.
+
+## Documentation
+
+- docs/architecture.md: components, monitoring flow, deployment flow, and boundaries.
+- docs/on-call-runbook.md: first response, quick checks, backups, redeploy, and Nginx restore.
+- docs/alarm-response.md: step-by-step response for CPU, memory, disk, notifications, and deployment failures.
+
+## Status
+
+Project 3 is complete (Days 136-145). Metrics, alarms, email alerts, daily S3 log backups, systemd scheduling, log rotation, the Nginx dashboard, and GitHub Actions deployment all run against the existing Project 1 EC2. Cleanup is documentation only; nothing is ever destroyed.
