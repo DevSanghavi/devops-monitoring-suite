@@ -7,4 +7,4 @@ After=network-online.target docker.service
 Type=oneshot
 Environment="BACKUP_BUCKET=devops-monitoring-logs-151024280292"
 Environment="AWS_DEFAULT_REGION=us-east-1"
-ExecStart=/home/ubuntu/devops-monitoring/backup-logs.sh
+ExecStart=/bin/sh -c '/home/ubuntu/devops-monitoring/backup-logs.sh >> /home/ubuntu/devops-monitoring/backup.log 2>&1'

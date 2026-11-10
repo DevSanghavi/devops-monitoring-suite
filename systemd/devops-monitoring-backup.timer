@@ -2,7 +2,7 @@
 Description=Run DevOps Monitoring log backup daily
 
 [Timer]
-OnCalendar=*-*-* 03:30:00 UTC
+OnCalendar=*-*-* 23:45:00 UTC
 Persistent=true
 RandomizedDelaySec=300
 Unit=devops-monitoring-backup.service
